@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-
-interface ITWAP {
-    function swapTokens(uint256 amountOutMinimum) external;
-}
 
 contract TWAP {
     address public owner;
@@ -49,16 +45,28 @@ contract TWAP {
         emit SwapPerformed(IERC20(tokenA).balanceOf(address(this)), IERC20(tokenB).balanceOf(address(this)));
     }
 
-    function deposit(uint256 amount) external onlyOwner {
+    function depositToken(uint256 amount) external onlyOwner {
         require(amount > 0, "Deposit amount must be greater than zero.");
 
         IERC20(tokenA).transferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(uint256 amount) external onlyOwner {
+    function withdrawToken(uint256 amount) external {
         require(amount > 0, "Withdrawal amount must be greater than zero.");
+        bool success = IERC20(tokenB).transfer(owner, amount);
+        require(success, "Transfer failed.");
+    }
 
-        IERC20(tokenA).transfer(msg.sender, amount);
+    fallback() external {
+        // Add logic here to handle the received Ether
+    }
+
+    receive() external payable {
+        // Add logic here to handle the received Ether
+    }
+
+    function balanceOf(address account, address token) external view returns (uint256) {
+        return IERC20(token).balanceOf(account);
     }
 
     modifier onlyOwner() {

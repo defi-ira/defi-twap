@@ -2,25 +2,26 @@
 pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IDCA {
+interface ITWAP {
     function swapTokens() external;
 }
 
-contract TimedSwapUpkeep is KeeperCompatibleInterface {
+contract TimedSwapUpkeep is KeeperCompatibleInterface, Ownable {
     uint public interval;
     uint public lastTimeStamp;
-    IDCA public twapContract;
+    ITWAP public twapContract;
 
     event UpkeepPerformed(uint timePerformed, uint interval);
 
     constructor(uint updateInterval, address _twapContractAddress) {
         interval = updateInterval;
         lastTimeStamp = block.timestamp;
-        twapContract = IDCA(_twapContractAddress);
+        twapContract = ITWAP(_twapContractAddress);
     }
 
-    function setInterval(uint updateInterval) public {
+    function setInterval(uint updateInterval) public onlyOwner {
         interval = updateInterval;
     }
 
