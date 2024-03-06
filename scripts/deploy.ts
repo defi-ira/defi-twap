@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { TWAP } from "../typechain-types";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
@@ -8,21 +9,21 @@ async function main() {
     const ARB_SEPOLIA_WBTC = '0x7f908D0faC9B8D590178bA073a053493A1D0A5d4';
     const ARB_UNISWAP_ROUTER = '0x101F443B4d1b059569D643917553c771E1b9663E';
     const TRADE_BLOCK_SIZE = 100; // 100 USDC
+    const UPKEEP_INTERVAL = 300; // 5 minutes
 
     const Contract = await ethers.getContractFactory("TWAP");
     const contract = await Contract.deploy(ARB_SEPOLIA_USDC, ARB_SEPOLIA_WBTC, ARB_UNISWAP_ROUTER, TRADE_BLOCK_SIZE);
+    await contract.waitForDeployment();
 
-    await contract.deployed();
-
-    console.log("TWAP Contract deployed to:", contract.address);
+    console.log("TWAP Contract deployed to:", await contract.getAddress());
 
 
     // TimedSwapUpkeep
     const TimedSwapUpkeep = await ethers.getContractFactory("TimedSwapUpkeep");
-    const timedSwapUpkeep = await TimedSwapUpkeep.deploy(180, contract.address, ARB_SEPOLIA_USDC); // 180 seconds
+    const timedSwapUpkeep = await TimedSwapUpkeep.deploy(UPKEEP_INTERVAL, await contract.getAddress(), ARB_SEPOLIA_USDC); // 5 minutes
+    await timedSwapUpkeep.waitForDeployment();
 
-    await timedSwapUpkeep.deployed();
-    console.log("TimedSwapUpkeep Contract deployed to:", timedSwapUpkeep.address);
+    console.log("TimedSwapUpkeep Contract deployed to:", await timedSwapUpkeep.getAddress());
 
 }
 
@@ -37,3 +38,7 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+function addressOf(contract: TWAP): any {
+    throw new Error("Function not implemented.");
+}
+

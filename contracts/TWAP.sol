@@ -9,26 +9,38 @@ contract TWAP {
     address public owner;
     address public tokenA;
     address public tokenB;
-    uint24 public amountA;
+    uint256 public amountA;
 
     ISwapRouter public immutable swapRouter;
 
     event SwapPerformed(uint256 tokenABalance, uint256 tokenBBalance);
 
-    constructor(address _tokenA, address _tokenB, ISwapRouter _swapRouter, uint24 _amountA) {
+    constructor(address _tokenA, address _tokenB, address _swapRouter, uint256 _amountA) {
         owner = msg.sender;
         tokenA = _tokenA;
         tokenB = _tokenB;
         amountA = _amountA;
-        swapRouter = _swapRouter;
+        swapRouter = ISwapRouter(_swapRouter);
     }
 
     function swapTokens() external {
-        require(msg.sender == owner, "Only the contract owner can perform swaps.");
+        // optionally require an owner for safety
 
         uint256 currentBalance = IERC20(tokenA).balanceOf(address(this));
         require(currentBalance > amountA, "Insufficient tokenA balance");
 
+        uint256 exchangeRate = 1; // 1 BTC ~= 50,000 USDC
+
+        // send exchangeRate of token A to owner address (burning it)
+        IERC20(tokenA).transfer(address(owner), exchangeRate);
+
+        // transfer 1 tokenB to the owner
+        IERC20(tokenB).transferFrom(tokenB, address(this), 1);
+
+        /*
+        * Uniswap Router V3 - Uncomment to use
+        *
+        *
         // Approve the router to spend tokenA.
         IERC20(tokenA).approve(address(swapRouter), amountA);
 
@@ -44,6 +56,7 @@ contract TWAP {
             sqrtPriceLimitX96: 0
         });
         swapRouter.exactInputSingle(params);
+        */
 
         emit SwapPerformed(IERC20(tokenA).balanceOf(address(this)), IERC20(tokenB).balanceOf(address(this)));
     }

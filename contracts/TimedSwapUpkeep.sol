@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
+import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface ITWAP {
@@ -9,7 +9,7 @@ interface ITWAP {
     function swapTokens() external;
 }
 
-contract TimedSwapUpkeep is KeeperCompatibleInterface, Ownable {
+contract TimedSwapUpkeep is AutomationCompatibleInterface, Ownable {
     uint public interval;
     uint public lastTimeStamp;
     address public tokenAContract;
